@@ -1,7 +1,8 @@
+const fs = require('fs');
+const path = require('path'); // ✅ path 모듈 추가
 const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder } = require('discord.js');
 require('dotenv').config(); // 환경 변수 로드
 
-// 🔹 Discord Client 설정
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -10,6 +11,10 @@ const client = new Client({
         GatewayIntentBits.MessageContent
     ]
 });
+
+// 데이터 파일 경로 설정
+const dataFilePath = path.join(__dirname, 'data.json');
+
 
 // 🔹 봇 로그인 이벤트
 client.once("ready", () => {
