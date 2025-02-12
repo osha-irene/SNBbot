@@ -45,7 +45,6 @@ client.on('guildCreate', guild => {
         );
     }
     });
-});
 
 const dataFilePath = path.join(__dirname, 'data.json');
 let characterData = {};
