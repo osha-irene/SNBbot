@@ -1,12 +1,33 @@
-const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder } = require('discord.js');
-const fs = require('fs');
-const path = require('path');
-require('dotenv').config(); // 환경 변수 로드
+const client = new Client({
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.DirectMessages,
+        GatewayIntentBits.MessageContent
+    ]
+});
 
-await rest.put(
-    Routes.applicationCommands(process.env.DISCORD_BOT_TOKEN),
-    { body: commands }
-);
+client.once("ready", () => {
+    console.log(`✅ Logged in as ${client.user.tag}!`);
+});
+
+client.login(process.env.DISCORD_BOT_TOKEN);
+// 환경 변수 로드
+
+async function registerCommands() {
+    try {
+        await rest.put(
+            Routes.applicationCommands(process.env.DISCORD_BOT_TOKEN),
+            { body: commands }
+        );
+        console.log("✅ 슬래시 명령어가 성공적으로 등록되었습니다!");
+    } catch (error) {
+        console.error("❌ 슬래시 명령어 등록 실패:", error);
+    }
+}
+
+// 비동기 함수 실행
+registerCommands();
 
 const client = new Client({
     intents: [
