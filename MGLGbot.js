@@ -981,20 +981,6 @@ const commands = [
                 .setRequired(true))
 ].map(command => command.toJSON());
 
-const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_BOT_TOKEN);
-(async () => {
-    try {
-        console.log('슬래시 명령어를 등록하는 중...');
-        await rest.put(
-            Routes.applicationCommands(process.env.DISCORD_BOT_TOKEN),
-            { body: commands }
-        );
-        console.log('✅ 슬래시 명령어 등록 완료!');
-    } catch (error) {
-        console.error(error);
-    }
-})();
-
 // 12시간마다 BCdicebot#8116에게 명령어 전송
 const targetBotTag = "BCdicebot#8116";
 const diceCommand = "bcdice set MagicaLogia:Korean";
