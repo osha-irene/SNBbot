@@ -17,19 +17,23 @@ const client = new Client({
 const dataFilePath = path.join(__dirname, 'data.json');
 
 
-// 🔹 봇 로그인 이벤트
-client.once("ready", () => {
-    console.log(`✅ Logged in as ${client.user.tag}!`);
-    registerCommands(); // 슬래시 명령어 등록 실행
-});
+/// 슬래시 명령어 정의
+const commands = [
+    new SlashCommandBuilder()
+        .setName('플롯')
+        .setDescription('플롯을 설정합니다.')
+        .addStringOption(option =>
+            option.setName('값')
+                .setDescription('1~6 사이의 숫자를 입력하세요. 예: 1 3 5')
+                .setRequired(true))
+].map(command => command.toJSON());
 
-// 🔹 REST API를 사용한 슬래시 명령어 등록
 const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_BOT_TOKEN);
 
 async function registerCommands() {
     try {
         await rest.put(
-            Routes.applicationCommands(process.env.BOT_ID), // BOT_ID는 .env에 저장해야 함
+            Routes.applicationCommands(process.env.BOT_ID), // .env에 BOT_ID 추가 필요
             { body: commands }
         );
         console.log("✅ 슬래시 명령어가 성공적으로 등록되었습니다!");
@@ -37,6 +41,12 @@ async function registerCommands() {
         console.error("❌ 슬래시 명령어 등록 실패:", error);
     }
 }
+
+client.once("ready", () => {
+    console.log(`✅ Logged in as ${client.user.tag}!`);
+    registerCommands(); // 봇이 준비되면 슬래시 명령어 등록 실행
+});
+
 
 // 🔹 봇 로그인 실행
 client.login(process.env.DISCORD_BOT_TOKEN);
