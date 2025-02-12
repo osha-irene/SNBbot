@@ -54,17 +54,18 @@ client.login(process.env.DISCORD_BOT_TOKEN);
   // 🔹 봇이 서버에 처음 초대될 때 메시지 전송
 client.on('guildCreate', guild => {
     const defaultChannel = guild.systemChannel || guild.channels.cache.find(channel => channel.type === 0);
+    
     if (defaultChannel) {
         defaultChannel.send(
             `✅ **MGLGbot이 정상적으로 초대되었습니다!**  
             💬 명령어를 확인하려면 **\`!도움\`**을 입력하세요.`
-        );
+        )
+        .then(() => console.log(`✅ [${guild.name}] 서버에 초대됨 - 첫 메시지 전송 완료!`))
+        .catch(err => console.error(`❌ [${guild.name}] 첫 메시지 전송 실패:`, err));
+    } else {
+        console.warn(`⚠️ [${guild.name}] 서버에 초대되었지만, 적절한 채널을 찾을 수 없음.`);
     }
-    });
-
-let characterData = {};
-let plotData = {};
-let logData = [];
+});
 
 // 데이터 로드
 if (fs.existsSync(dataFilePath)) {
