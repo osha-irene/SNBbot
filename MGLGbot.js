@@ -1,7 +1,12 @@
 const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
-const config = require('./config.json');
+require('dotenv').config(); // 환경 변수 로드
+
+await rest.put(
+    Routes.applicationCommands(process.env.DISCORD_BOT_TOKEN),
+    { body: commands }
+);
 
 const client = new Client({
     intents: [
@@ -968,7 +973,7 @@ const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_BOT_TOKEN)
     try {
         console.log('슬래시 명령어를 등록하는 중...');
         await rest.put(
-            Routes.applicationCommands(config.BOT_ID),
+            Routes.applicationCommands(process.env.DISCORD_BOT_TOKEN),
             { body: commands }
         );
         console.log('✅ 슬래시 명령어 등록 완료!');
@@ -997,10 +1002,6 @@ setInterval(() => {
         }
     });
 }, interval);
-
-
-// 봇 로그인
-require('dotenv').config(); // .env 파일 불러오기
 
 // 환경 변수에서 봇 토큰 가져오기
 const token = process.env.DISCORD_BOT_TOKEN;
