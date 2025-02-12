@@ -1,3 +1,7 @@
+const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder } = require('discord.js');
+require('dotenv').config(); // 환경 변수 로드
+
+// 🔹 Discord Client 설정
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -7,17 +11,19 @@ const client = new Client({
     ]
 });
 
+// 🔹 봇 로그인 이벤트
 client.once("ready", () => {
     console.log(`✅ Logged in as ${client.user.tag}!`);
+    registerCommands(); // 슬래시 명령어 등록 실행
 });
 
-client.login(process.env.DISCORD_BOT_TOKEN);
-// 환경 변수 로드
+// 🔹 REST API를 사용한 슬래시 명령어 등록
+const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_BOT_TOKEN);
 
 async function registerCommands() {
     try {
         await rest.put(
-            Routes.applicationCommands(process.env.DISCORD_BOT_TOKEN),
+            Routes.applicationCommands(process.env.BOT_ID), // BOT_ID는 .env에 저장해야 함
             { body: commands }
         );
         console.log("✅ 슬래시 명령어가 성공적으로 등록되었습니다!");
@@ -26,21 +32,8 @@ async function registerCommands() {
     }
 }
 
-// 비동기 함수 실행
-registerCommands();
-
-const client = new Client({
-    intents: [
-        GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.DirectMessages,
-        GatewayIntentBits.MessageContent
-    ]
-});
-
-client.once('ready', async () => {
-    console.log(`✅ Logged in as ${client.user.tag}!`);
-
+// 🔹 봇 로그인 실행
+client.login(process.env.DISCORD_BOT_TOKEN);
 
   // 🔹 봇이 서버에 처음 초대될 때 메시지 전송
 client.on('guildCreate', guild => {
