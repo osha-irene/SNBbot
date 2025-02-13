@@ -700,13 +700,13 @@ if (command === '!장서추가') {
 
 
 
-// 🔹 개별 장서에 마소 충전 및 감소 (`!장서명+1`, `!장서명-1`)
+// 🔹 개별 장서에 마소 충전 및 감소 (`!장서명+1`, `!장서명-1`, `!장서명+3` 등 숫자 가능)
 if (/^!.+\s?[\+\-]\d+$/.test(command)) {  
-    // 증가 또는 감소 값 추출
+    // 🔹 증가 또는 감소 값 추출
     const changeMatch = command.match(/([+\-]\d+)$/);
     if (!changeMatch) return;
 
-    const changeValue = parseInt(changeMatch[1]); // +1, -1 등의 값
+    const changeValue = parseInt(changeMatch[1]); // +숫자, -숫자
     if (isNaN(changeValue)) return;
 
     // 🔍 명령어에서 장서명 추출 (`+숫자` 부분 제거)
@@ -727,46 +727,36 @@ if (/^!.+\s?[\+\-]\d+$/.test(command)) {
         return message.reply(`❌ **"${입력장서명}"** 장서를 보유하고 있지 않습니다. \n등록된 장서를 확인하려면 \`!장서목록\`을 사용하세요.`);
     }
 
-    // 장서 값 조정 (최소 0 이상 유지)
-    char.장서[장서키] = Math.max(0, (char.장서[장서키] || 0) + changeValue);
-    saveData();
-
-    return message.reply(`✅ **"${장서키}"**의 마소가 **${char.장서[장서키]}**(으)로 변경되었습니다.`);
-}
-
-
-if (!char.장서 || Object.keys(char.장서).length === 0) {
-    return message.reply('📖 보유한 장서가 없습니다.');
-}
-
-message.reply(`📖 **보유한 장서**: ${Object.keys(char.장서).join(', ')}`);
-
-    const 장서 = char.장서[장서키];
+    // 장서 데이터 가져오기
+    let 장서 = char.장서[장서키];
 
     // ✅ 개별 장서 마소 충전량 관리
     if (장서.현재마소 === undefined) 장서.현재마소 = 0;
+    if (!장서.마소영역) 장서.마소영역 = 장서키; // 마소영역이 없으면 기본값으로 설정
 
-    // 🔹 마소 충전 (최대 캐릭터 근원력만큼)
-    if (increase === 1) {
-        if (장서.현재마소 >= char.능력치.근원력) {
-            return message.reply(`❌ **${장서.마소영역} 마소**는 최대 근원력(${char.능력치.근원력})을 초과하여 충전할 수 없습니다!`);
+    // 캐릭터 근원력 값 가져오기
+    const 근원력 = char.능력치?.근원력 || 3; // 기본값 3 (설정 안 되어 있을 경우 대비)
+
+    // 🔹 마소 충전 (최대 근원력 제한)
+    if (changeValue > 0) {
+        if (장서.현재마소 + changeValue > 근원력) {
+            return message.reply(`❌ **${장서.마소영역} 마소**는 최대 근원력(${근원력})을 초과할 수 없습니다!`);
         }
-        장서.현재마소 += 1;
-        saveData();
-        return message.reply(`**${장서키}** → **${장서.마소영역} 마소 +1** (현재: ${장서.현재마소} / ${char.능력치.근원력})`);
+        장서.현재마소 += changeValue;
     }
 
     // 🔻 마소 감소 (최소 0 이상)
-    if (increase === -1) {
-        if (장서.현재마소 <= 0) {
+    if (changeValue < 0) {
+        if (장서.현재마소 + changeValue < 0) {
             return message.reply(`❌ **${장서.마소영역} 마소**가 부족하여 감소할 수 없습니다.`);
         }
-        장서.현재마소 -= 1;
-        saveData();
-        return message.reply(`**${장서키}** → **${장서.마소영역} 마소 -1** (현재: ${장서.현재마소} / ${char.능력치.근원력})`);
+        장서.현재마소 += changeValue;
     }
-}
 
+    saveData();
+
+    return message.reply(`🔹 **${장서키}** → **${장서.마소영역} 마소 ${changeValue > 0 ? "+" : ""}${changeValue}** (현재: ${장서.현재마소} / ${근원력})`);
+}
 
 
 
