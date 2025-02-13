@@ -999,34 +999,27 @@ if (command === '!공격계약' || command === '!방어계약') {
 
 	
 	
-      // 1️⃣ **능력치 조정 명령어 (공격력, 방어력, 근원력) 감지**
-        const statRegex = /^!(공격력|방어력|근원력)([+-]\d+)$/;
-        const statMatch = command.match(statRegex);
+const abilityStats = ["공격력", "방어력", "근원력"]; // 능력치 목록
 
-        if (statMatch) {
-            const statType = statMatch[1]; // "공격력", "방어력", "근원력" 중 하나
-            const changeValue = parseInt(statMatch[2]); // +2, -1 등의 숫자 추출
+// 🔹 능력치 변경 (공격력, 방어력, 근원력)
+if (/^!(공격력|방어력|근원력)[+\-]\d+$/.test(command)) {  
+    const statMatch = command.match(/^!(공격력|방어력|근원력)([+\-]\d+)$/);
+    if (!statMatch) return;
 
-            if (isNaN(changeValue) || changeValue === 0) {
-                return message.reply('❌ 올바른 숫자를 입력하세요. (예: `!공격력+1`)');
-            }
+    const statType = statMatch[1];  // 공격력, 방어력, 근원력 중 하나
+    const changeValue = parseInt(statMatch[2]); // +숫자, -숫자 추출
 
-            // 캐릭터 데이터가 없으면 초기화
-            if (!characterData[userId]) {
-                characterData[userId] = { 능력치: { 공격력: 3, 방어력: 3, 근원력: 3 }, 장서: {} };
-            }
+    if (!characterData[message.author.id].능력치) {
+        characterData[message.author.id].능력치 = { 공격력: 3, 방어력: 3, 근원력: 3 }; // 기본값 설정
+    }
 
-            if (!characterData[userId].능력치) {
-                characterData[userId].능력치 = { 공격력: 3, 방어력: 3, 근원력: 3 };
-            }
+    // 능력치 조정 (최소 1, 최대 7)
+    characterData[message.author.id].능력치[statType] = Math.max(1, Math.min(7, characterData[message.author.id].능력치[statType] + changeValue));
+    saveData();
 
-            // 능력치 조정 (최소 1, 최대 7)
-            characterData[userId].능력치[statType] = Math.max(1, Math.min(7, characterData[userId].능력치[statType] + changeValue));
-            saveData();
+    return message.reply(`✅ **${statType}**이(가) **${characterData[message.author.id].능력치[statType]}**(으)로 변경되었습니다.`);
+}
 
-            return message.reply(`✅ **${statType}**이(가) **${characterData[userId].능력치[statType]}**(으)로 변경되었습니다.`);
-        }
-	
 	// 🔹 원형 설정 (이름 형식 개선)
     if (command === '!원형소환') {
         if (args.length < 2) return message.reply('❌ 사용법: `!원형소환 [원형이름] [특기]`');
