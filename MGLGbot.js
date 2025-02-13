@@ -13,9 +13,31 @@ const client = new Client({
     ]
 });
 
+
 // 데이터 파일 경로 설정
 const dataFilePath = path.join(__dirname, 'data.json');
 
+// 📝 **characterData 전역 변수 선언**
+let characterData = {};
+
+// 데이터 로드 (파일이 존재하면 불러오기)
+if (fs.existsSync(dataFilePath)) {
+    try {
+        characterData = JSON.parse(fs.readFileSync(dataFilePath, 'utf8'));
+    } catch (error) {
+        console.error("❌ 데이터 로드 중 오류 발생:", error);
+        characterData = {}; // 오류 발생 시 빈 객체로 초기화
+    }
+}
+
+// 데이터를 저장하는 함수
+const saveData = () => {
+    try {
+        fs.writeFileSync(dataFilePath, JSON.stringify(characterData, null, 2));
+    } catch (error) {
+        console.error("❌ 데이터 저장 실패:", error);
+    }
+};
 
 /// 슬래시 명령어 정의
 const commands = [
