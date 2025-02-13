@@ -687,9 +687,8 @@ if (command === '!장서추가') {
 }
 
 
-
 // 🔹 개별 장서에 마소 충전 및 감소 (`!장서명+1`, `!장서명-1`, `!장서명+3` 등 숫자 가능)
-if (/^!.+\s?[\+\-]\d+$/.test(command)) {  
+if (/^!(?!공격력|방어력|근원력).+\s?[\+\-]\d+$/.test(command)) {  
     // 🔹 증가 또는 감소 값 추출
     const changeMatch = command.match(/([+\-]\d+)$/);
     if (!changeMatch) return;
@@ -742,8 +741,7 @@ if (/^!.+\s?[\+\-]\d+$/.test(command)) {
     }
 
     saveData();
-
-    return message.reply(`🔹 **${장서키}** → **${장서.마소영역} 마소 ${changeValue > 0 ? "+" : ""}${changeValue}** (현재: ${장서.현재마소} / ${근원력})`);
+    return message.reply(`✅ **"${장서키}"** → **${장서.마소영역} 마소 ${changeValue > 0 ? '+' : ''}${changeValue}** (현재: ${장서.현재마소} / ${근원력})`);
 }
 
 
