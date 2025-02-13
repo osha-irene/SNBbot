@@ -735,7 +735,12 @@ if (/^!.+\s?[\+\-]\d+$/.test(command)) {
 }
 
 
-📖 **보유한 장서**: ${Object.keys(char.장서).join(', ') || '없음'}`);
+if (!char.장서 || Object.keys(char.장서).length === 0) {
+    return message.reply('📖 보유한 장서가 없습니다.');
+}
+
+message.reply(`📖 **보유한 장서**: ${Object.keys(char.장서).join(', ')}`);
+
     }
 
     const 장서 = char.장서[장서키];
