@@ -1088,14 +1088,11 @@ if (/^!(공격력|방어력|근원력)[+\-]\d+$/.test(command)) {
             + "📌 문의 및 피드백은 오샤(@TRPG_sha/o3o_sha)로 부탁드려요."
         ];
 
-for (const msg of helpMessages) {
-    if (typeof msg === 'string' && msg.trim() !== '') {
-        await message.reply(msg).catch(err => console.error("❌ 메시지 전송 실패:", err));
-    } else {
-        console.error("⚠️ 유효하지 않은 메시지 형식:", msg);
-    }
+for (const msg of helpMessages.filter(m => typeof m === 'string' && !Number.isNaN(m) && m.trim() !== '')) {
+    await message.reply(msg).catch(err => console.error("❌ 메시지 전송 실패:", err));
 }
-	}
+
+}	
 	});
 
 // Register Slash Commands
