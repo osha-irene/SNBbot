@@ -89,13 +89,6 @@ client.on('guildCreate', guild => {
     }
 });
 
-// 데이터 로드
-if (fs.existsSync(dataFilePath)) {
-    characterData = JSON.parse(fs.readFileSync(dataFilePath, 'utf8'));
-}
-const saveData = () => fs.writeFileSync(dataFilePath, JSON.stringify(characterData, null, 2));
-const saveLog = () => fs.writeFileSync("log.json", JSON.stringify(logData, null, 2));
-
 // 🔹 Slash command for 플롯
 client.on('interactionCreate', async interaction => {
     if (!interaction.isCommand()) return;
