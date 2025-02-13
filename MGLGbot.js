@@ -1096,7 +1096,7 @@ for (const msg of helpMessages) {
     }
 }
 	});
-	
+	});
 
 // Register Slash Commands
 const commands = [
