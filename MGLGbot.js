@@ -151,7 +151,6 @@ client.on('messageCreate', async message => {
             console.error(`🚫 서버 소유자에게 DM을 보낼 수 없습니다:`, dmError);
         }
     }
-});
 
 
 	const args = message.content.match(/"([^"]+)"|\S+/g); // 큰따옴표 포함 문자열 파싱
@@ -1112,8 +1111,9 @@ if (command === '!공격계약' || command === '!방어계약') {
         for (const msg of helpMessages) {
             await message.reply(msg);
         }
-    }
-	}
+    };
+	});
+	
 
 // Register Slash Commands
 const commands = [
