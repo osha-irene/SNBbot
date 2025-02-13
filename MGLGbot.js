@@ -1095,7 +1095,7 @@ for (const msg of helpMessages) {
         console.error("⚠️ 유효하지 않은 메시지 형식:", msg);
     }
 }
-	});
+	}
 	});
 
 // Register Slash Commands
