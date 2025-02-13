@@ -39,17 +39,6 @@ const saveData = () => {
     }
 };
 
-/// 슬래시 명령어 정의
-const commands = [
-    new SlashCommandBuilder()
-        .setName('플롯')
-        .setDescription('플롯을 설정합니다.')
-        .addStringOption(option =>
-            option.setName('값')
-                .setDescription('1~6 사이의 숫자를 입력하세요. 예: 1 3 5')
-                .setRequired(true))
-].map(command => command.toJSON());
-
 const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_BOT_TOKEN);
 
 async function registerCommands() {
