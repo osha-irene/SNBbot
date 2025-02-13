@@ -118,6 +118,41 @@ client.on('interactionCreate', async interaction => {
 
 client.on('messageCreate', async message => {
     if (message.author.bot) return;
+    try {
+        if (message.author.bot) return;
+        if (!message.guild) return;
+
+        // 명령어 인자 가져오기
+        let args = message.content.trim().split(/\s+/);
+
+        // ❗ args가 null이 아닌지 확인 후 shift() 실행
+        if (!args || args.length === 0) {
+            console.warn(`⚠️ 명령어 분석 중 오류 발생: args가 비어 있음.`);
+            return;
+        }
+
+        let command = args.shift().toLowerCase(); // 첫 번째 단어를 명령어로 사용
+
+        // 🛠 예제: 특정 명령어 실행
+        if (command === "!테스트") {
+            message.channel.send("✅ 명령어가 정상적으로 실행되었습니다!");
+        }
+
+    } catch (error) {
+        console.error("🚨 [명령어 처리 중 오류 발생]:", error);
+
+        // 🔹 오류 발생 시 DM으로 알림 (선택 사항)
+        try {
+            const owner = await message.guild.fetchOwner();
+            if (owner) {
+                owner.send(`❌ DX3bot에서 오류가 발생했습니다. 로그를 확인하세요.`);
+            }
+        } catch (dmError) {
+            console.error(`🚫 서버 소유자에게 DM을 보낼 수 없습니다:`, dmError);
+        }
+    }
+});
+
 
 	const args = message.content.match(/"([^"]+)"|\S+/g); // 큰따옴표 포함 문자열 파싱
     const command = args.shift();
@@ -665,23 +700,41 @@ if (command === '!장서추가') {
 
 
 
-
 // 🔹 개별 장서에 마소 충전 및 감소 (`!장서명+1`, `!장서명-1`)
-if (/^!.+\s?[\+\-]1$/.test(command)) {  
-    const increase = command.includes("+1") ? 1 : -1;
-    
-    // 🔍 명령어에서 장서명 추출 (`+1` 또는 `-1` 부분 제거)
-    let 입력장서명 = command.replace(/^!/, '').replace(/\s?[\+\-]1$/, '').trim();
+if (/^!.+\s?[\+\-]\d+$/.test(command)) {  
+    // 증가 또는 감소 값 추출
+    const changeMatch = command.match(/([+\-]\d+)$/);
+    if (!changeMatch) return;
 
+    const changeValue = parseInt(changeMatch[1]); // +1, -1 등의 값
+    if (isNaN(changeValue)) return;
+
+    // 🔍 명령어에서 장서명 추출 (`+숫자` 부분 제거)
+    let 입력장서명 = command.replace(/^!/, '').replace(/\s?[\+\-]\d+$/, '').trim();
+
+    // 캐릭터 데이터 확인
     const char = characterData[message.author.id];
     if (!char || !char.장서) {
-        return message.reply('❌ 등록된 장서가 없습니다.');
+        return message.reply('❌ 현재 등록된 장서가 없습니다. 먼저 `!장서등록 [장서명]`을 사용해 등록하세요.');
     }
 
     // 🔍 입력값과 저장된 장서명 비교 (공백 제거 후 매칭)
-    const 장서키 = Object.keys(char.장서).find(장서 => 장서.replace(/\s+/g, '') === 입력장서명.replace(/\s+/g, ''));
+    const 장서키 = Object.keys(char.장서).find(장서 => 
+        장서.replace(/\s+/g, '') === 입력장서명.replace(/\s+/g, '')
+    );
+
     if (!장서키) {
-        return message.reply(`❌ 해당 장서를 보유하고 있지 않습니다.  
+        return message.reply(`❌ **"${입력장서명}"** 장서를 보유하고 있지 않습니다. \n등록된 장서를 확인하려면 \`!장서목록\`을 사용하세요.`);
+    }
+
+    // 장서 값 조정 (최소 0 이상 유지)
+    char.장서[장서키] = Math.max(0, (char.장서[장서키] || 0) + changeValue);
+    saveData();
+
+    return message.reply(`✅ **"${장서키}"**의 마소가 **${char.장서[장서키]}**(으)로 변경되었습니다.`);
+}
+
+
 📖 **보유한 장서**: ${Object.keys(char.장서).join(', ') || '없음'}`);
     }
 
@@ -965,25 +1018,33 @@ if (command === '!공격계약' || command === '!방어계약') {
 
 	
 	
-	    // 🔹 능력치 조정 (공격력/방어력/근원력)
-    if (command.startsWith('!공격력') || command.startsWith('!방어력') || command.startsWith('!근원력')) {
-        initializeCharacter(message.author.id); // 캐릭터 데이터 초기화
+      // 1️⃣ **능력치 조정 명령어 (공격력, 방어력, 근원력) 감지**
+        const statRegex = /^!(공격력|방어력|근원력)([+-]\d+)$/;
+        const statMatch = command.match(statRegex);
 
-        const statType = command.replace('!', '').replace('+1', '').replace('-1', '');
-        const change = command.includes('+1') ? 1 : (command.includes('-1') ? -1 : 0);
+        if (statMatch) {
+            const statType = statMatch[1]; // "공격력", "방어력", "근원력" 중 하나
+            const changeValue = parseInt(statMatch[2]); // +2, -1 등의 숫자 추출
 
-        if (change === 0) return message.reply('❌ 사용법: `!공격력+1`, `!방어력-1` 같은 형식으로 입력하세요.');
+            if (isNaN(changeValue) || changeValue === 0) {
+                return message.reply('❌ 올바른 숫자를 입력하세요. (예: `!공격력+1`)');
+            }
 
-        if (!characterData[message.author.id].능력치) {
-            characterData[message.author.id].능력치 = { 공격력: 3, 방어력: 3, 근원력: 3 }; // 기본값 설정
+            // 캐릭터 데이터가 없으면 초기화
+            if (!characterData[userId]) {
+                characterData[userId] = { 능력치: { 공격력: 3, 방어력: 3, 근원력: 3 }, 장서: {} };
+            }
+
+            if (!characterData[userId].능력치) {
+                characterData[userId].능력치 = { 공격력: 3, 방어력: 3, 근원력: 3 };
+            }
+
+            // 능력치 조정 (최소 1, 최대 7)
+            characterData[userId].능력치[statType] = Math.max(1, Math.min(7, characterData[userId].능력치[statType] + changeValue));
+            saveData();
+
+            return message.reply(`✅ **${statType}**이(가) **${characterData[userId].능력치[statType]}**(으)로 변경되었습니다.`);
         }
-
-        // 능력치 조정 (최소 1, 최대 7)
-        characterData[message.author.id].능력치[statType] = Math.max(1, Math.min(7, characterData[message.author.id].능력치[statType] + change));
-        saveData();
-
-        message.reply(`✅ **${statType}**이(가) **${characterData[message.author.id].능력치[statType]}**(으)로 변경되었습니다.`);
-    }
 	
 	// 🔹 원형 설정 (이름 형식 개선)
     if (command === '!원형소환') {
@@ -1044,6 +1105,7 @@ if (command === '!공격계약' || command === '!방어계약') {
             + "`!장서 \"장서명\"` - 장서 사용 판정\n"
             + "`!장서삭제 \"장서명\"` / `!장서리셋` - 장서 삭제/초기화\n"
             + "`!장서목록` - 보유 장서 목록 확인\n",
+	    + "`!장서이름+1, !장서이름-1` - 보유 장서에 마소 충전, 감소\n",
 
             "📜 **MGLGbot 명령어 목록 (3/3)**\n"
             + "**📌 기타 기능**\n"
