@@ -1070,6 +1070,9 @@ if (command === '!공격계약' || command === '!방어계약') {
     }
 
 // 도움 메세지
+client.on("messageCreate", async (message) => { // ✅ `async` 추가
+    if (message.author.bot) return;
+	
     if (message.content === '!도움') {
         const helpMessages = [
             "📜 **MGLGbot 명령어 목록 (1/3)**\n"
