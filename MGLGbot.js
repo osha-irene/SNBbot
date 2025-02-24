@@ -56,6 +56,26 @@ module.exports = {
     },
 };
 
+const { REST, Routes } = require('discord.js');
+require('dotenv').config();
+
+const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_BOT_TOKEN);
+
+async function registerCommands(clientId, commands) {
+    try {
+        console.log("⏳ 슬래시 명령어 등록 중...");
+        await rest.put(
+            Routes.applicationCommands(clientId),
+            { body: commands }
+        );
+        console.log("✅ 슬래시 명령어가 성공적으로 등록되었습니다!");
+    } catch (error) {
+        console.error("❌ 슬래시 명령어 등록 실패:", error);
+    }
+}
+
+module.exports = { registerCommands };
+
 
 // 데이터 파일 경로 설정
 const dataFilePath = path.join(__dirname, 'data.json');
