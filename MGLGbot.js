@@ -4,6 +4,7 @@ const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder } = require
 require('dotenv').config(); // 환경 변수 로드
 const BOT_OWNER_ID = process.env.BOT_OWNER_ID;
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+const userLanguage = {};  // 사용자별 언어 설정 저장 (예: { "123456789": "en" })
 
 // 🔹 디스코드 봇 클라이언트 생성
 const client = new Client({
@@ -189,33 +190,107 @@ client.on('messageCreate', async message => {
         }
     }
 
-
 	
 	// 특기 및 영역 목록
-const 영역목록 = ["별", "짐승", "힘", "노래", "꿈", "어둠"];
-const 특기목록 = [
-    ["황금", "살", "중력", "이야기", "추억", "심연"],
-    ["대지", "벌레", "바람", "선율", "수수께끼", "부패"],
-    ["숲", "꽃", "흐름", "눈물", "거짓", "배신"],
-    ["길", "피", "물", "이별", "불안", "방황"],
-    ["바다", "비늘", "파문", "미소", "잠", "나태"],
-    ["정적", "혼돈", "자유", "마음", "우연", "왜곡"],
-    ["비", "이빨", "충격", "승리", "환각", "불행"],
-    ["폭풍", "외침", "우레", "사랑", "광기", "바보"],
-    ["태양", "분노", "불", "정열", "기도", "악의"],
-    ["천공", "날개", "빛", "치유", "희망", "절망"],
-    ["이계", "에로스", "원환", "시간", "미래", "죽음"]
-];
+    const languageData = {
+        ko: {
+            영역목록: ["별", "짐승", "힘", "노래", "꿈", "어둠"],
+            특기목록: [
+                ["황금", "살", "중력", "이야기", "추억", "심연"],
+                ["대지", "벌레", "바람", "선율", "수수께끼", "부패"],
+                ["숲", "꽃", "흐름", "눈물", "거짓", "배신"],
+                ["길", "피", "물", "이별", "불안", "방황"],
+                ["바다", "비늘", "파문", "미소", "잠", "나태"],
+                ["정적", "혼돈", "자유", "마음", "우연", "왜곡"],
+                ["비", "이빨", "충격", "승리", "환각", "불행"],
+                ["폭풍", "외침", "우레", "사랑", "광기", "바보"],
+                ["태양", "분노", "불", "정열", "기도", "악의"],
+                ["천공", "날개", "빛", "치유", "희망", "절망"],
+                ["이계", "에로스", "원환", "시간", "미래", "죽음"]
+            ]
+        },
+        en: {
+            domain: ["Planet", "Animalism", "Dynamics", "Poetics", "Visions", "Shadows"],
+            Stamp: [
+                ["Gold", "Flesh", "Gravity", "Story", "Memories", "Abyss"],
+                ["Earth", "Insects", "Wind", "Melody", "Mystery", "Decay"],
+                ["Forest", "Flowers", "Flow", "Tear", "Falsehood", "Betrayal"],
+                ["Paths", "Blood", "Water", "Farewell", "Anxiety", "Wandering"],
+                ["Sea", "Scales", "Wave", "Smile", "Sleep", "Sloth"],
+                ["Silence", "Chaos", "Freedom", "Heart", "Chance", "Perversion"],
+                ["Rain", "Fangs", "Shock", "Victory", "Illusion", "Misfortune"],
+                ["Storm", "Cry", "Thunder", "Love", "Madness", "Fool"],
+                ["Sun", "Rage", "Fire", "Passion", "Pray", "Malice"],
+                ["Sky", "Wing", "Light", "Cure", "Hope", "Despair"],
+                ["Otherworlds", "Eros", "Cycle", "Time", "Future", "Death"]
+            ]
+        }
+    };
+    
+    // 사용자별 언어 설정 저장 (기본값: 한국어)
+    const userLanguage = {}; // { userId: "ko" 또는 "en" }
+    
+    // 🔹 언어 변경 명령어
+    client.on("messageCreate", async message => {
+        if (message.content.startsWith("!언어")) {
+            const args = message.content.split(" ");
+            if (args.length < 2 || !["ko", "en"].includes(args[1])) {
+                return message.reply("❌ 사용법: `!언어 ko` 또는 `!언어 en`");
+            }
+    
+            userLanguage[message.author.id] = args[1];
+            message.reply(`✅ 언어가 **${args[1] === "ko" ? "한국어" : "English"}**로 변경되었습니다.`);
+        }
+    });
+    
+    // 🔹 특정 유저의 언어 데이터 가져오기
+    function getUserLanguage(userId) {
+        return userLanguage[userId] || "ko"; // 기본값: 한국어
+    }
+    
+    // 🔹 영역 및 특기 데이터 반환
+    function getLocalizedData(userId) {
+        const lang = getUserLanguage(userId);
+        return languageData[lang];
+    }
+    
+    // 예시: 사용자 언어에 따라 특기 목록 가져오기
+    client.on("messageCreate", async message => {
+        if (message.content === "!특기목록") {
+            const data = getLocalizedData(message.author.id);
+            let response = "📜 **특기 목록**\n";
+            for (let i = 0; i < data.영역목록.length; i++) {
+                response += `🔹 **${data.영역목록[i]}**: ${data.특기목록[i].join(", ")}\n`;
+            }
+            message.reply(response);
+        }
+    });
 
-const 영역이모지 = {
-    "별": "🌟",
-    "짐승": "🐾",
-    "힘": "⚡",
-    "노래": "🎵",
-    "꿈": "💤",
-    "어둠": "🌑",
-    "가변": "🎲" // 가변 특기 추가
-};
+    const 영역이모지 = {
+        "별": "🌟",       // Star → Planet  
+        "짐승": "🐾",     // Beast → Animalism  
+        "힘": "⚡",       // Strength → Dynamics  
+        "노래": "🎵",     // Song → Poetics  
+        "꿈": "💤",       // Dream → Visions  
+        "어둠": "🌑",     // Darkness → Shadows  
+        "가변": "🎲",     // Variable → Random  
+    };
+    
+    const 영역이모지_en = {
+        "Planet": "🌟",
+        "Animalism": "🐾",
+        "Dynamics": "⚡",
+        "Poetics": "🎵",
+        "Visions": "💤",
+        "Shadows": "🌑",
+        "Random": "🎲"
+    };
+    
+    // 사용자 언어에 맞는 영역 이모지 반환
+    function getLocalizedEmoji(userId, key) {
+        const lang = getUserLanguage(userId);
+        return lang === "ko" ? 영역이모지[key] : 영역이모지_en[key] || "❓";
+    }
 
 if (message.content.startsWith('!업데이트')) {
     if (message.author.id !== BOT_OWNER_ID) {
@@ -353,32 +428,96 @@ if (command === '!시트입력') {
         message.reply(`🎲 **마력을 결정합니다.**\n1D6 + ${근원력} → **${diceRoll} + ${근원력} = ${마력}**`);
     }
 
-    // 🔹 영역 설정
-    if (command === '!영역') {
-        const 영역 = args[0];
-        if (!영역목록.includes(영역)) return message.reply('❌ 존재하지 않는 영역입니다. (별, 짐승, 힘, 노래, 꿈, 어둠 중 선택)');
-        if (!characterData[message.author.id]) characterData[message.author.id] = {};
-        characterData[message.author.id].영역 = 영역;
+    if (command === '!DTEther') {
+        if (!characterData[message.author.id]) {
+            return message.reply('❌ Please create a character first using `!createSheet`.');
+        }
+    
+        // 🎲 Roll 1D6
+        const diceRoll = Math.floor(Math.random() * 6) + 1;
+        const source = characterData[message.author.id].stats?.source || 3;
+        const ether = source + diceRoll;
+    
+        // Save Ether
+        characterData[message.author.id].ether = ether;
         saveData();
-        message.reply(`✅ 영역이 **${영역}**(으)로 설정되었습니다.`);
+    
+        message.reply(`🎲 **Determining Ether.**\n1D6 + ${source} → **${diceRoll} + ${source} = ${ether}**`);
+    }
+    
+
+  
+// 🔹 언어별 메시지 데이터
+const messages = {
+    setDomain: {
+        ko: "✅ 영역이 **{value}**(으)로 설정되었습니다.",
+        en: "✅ Domain set to **{value}**."
+    },
+    invalidDomain: {
+        ko: "❌ 존재하지 않는 영역입니다. (별, 짐승, 힘, 노래, 꿈, 어둠 중 선택)",
+        en: "❌ Invalid domain. Please choose from (Planet, Animalism, Dynamics, Poetics, Visions, Shadows)."
+    },
+    setSkills: {
+        ko: "✅ 특기가 설정되었습니다: {value}",
+        en: "✅ Skills set: {value}"
+    },
+    checkSkills: {
+        ko: "📝 현재 특기: {value}",
+        en: "📝 Current Skills: {value}"
+    },
+    noSkills: {
+        ko: "❌ 설정된 특기가 없습니다.",
+        en: "❌ No skills have been set."
+    }
+};
+
+// 🔹 영역 설정
+client.on("messageCreate", async message => {
+    const args = message.content.split(" ");
+    const command = args.shift();
+
+    if (command === "!영역" || command === "!setDomain") {
+        const domain = args[0];
+        const lang = getUserLanguage(message.author.id);
+
+        if (!영역목록.includes(domain)) {
+            return message.reply(messages.invalidDomain[lang]);
+        }
+
+        if (!characterData[message.author.id]) characterData[message.author.id] = {};
+        characterData[message.author.id].영역 = domain;
+        saveData();
+
+        message.reply(messages.setDomain[lang].replace("{value}", domain));
     }
 
     // 🔹 특기 설정
-    if (command === '!특기설정') {
-        if (args.length !== 5) return message.reply('❌ 5개의 특기를 입력해야 합니다.');
+    if (command === "!특기설정" || command === "!setSkills") {
+        const lang = getUserLanguage(message.author.id);
+
+        if (args.length !== 5) {
+            return message.reply(lang === "ko" ? "❌ 5개의 특기를 입력해야 합니다." : "❌ You must enter exactly 5 skills.");
+        }
+
         if (!characterData[message.author.id]) characterData[message.author.id] = {};
         characterData[message.author.id].특기 = args;
         saveData();
-        message.reply(`✅ 특기가 설정되었습니다: ${args.join(', ')}`);
+
+        message.reply(messages.setSkills[lang].replace("{value}", args.join(", ")));
     }
 
     // 🔹 특기 확인
-    if (command === '!특기확인') {
+    if (command === "!특기확인" || command === "!checkSkills") {
+        const lang = getUserLanguage(message.author.id);
         const char = characterData[message.author.id];
-        if (!char || !char.특기) return message.reply('❌ 설정된 특기가 없습니다.');
-        message.reply(`📝 현재 특기: ${char.특기.join(', ')}`);
-    }
 
+        if (!char || !char.특기) {
+            return message.reply(messages.noSkills[lang]);
+        }
+
+        message.reply(messages.checkSkills[lang].replace("{value}", char.특기.join(", ")));
+    }
+});
 
 // 🔹 혼의 특기 설정
 if (command === '!혼의특기') {
