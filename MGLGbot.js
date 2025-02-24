@@ -211,8 +211,8 @@ client.on('messageCreate', async message => {
             ]
         },
         en: {
-            domain: ["Planet", "Animalism", "Dynamics", "Poetics", "Visions", "Shadows"],
-            Stamp: [
+            영역목록: ["Planet", "Animalism", "Dynamics", "Poetics", "Visions", "Shadows"],
+            특기목록: [
                 ["Gold", "Flesh", "Gravity", "Story", "Memories", "Abyss"],
                 ["Earth", "Insects", "Wind", "Melody", "Mystery", "Decay"],
                 ["Forest", "Flowers", "Flow", "Tear", "Falsehood", "Betrayal"],
