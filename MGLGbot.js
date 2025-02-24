@@ -519,35 +519,42 @@ client.on("messageCreate", async message => {
     }
 });
 
-// 🔹 혼의 특기 설정 (Stamp of Spirit, SS)
-if (command === '!혼의특기' || command === '!SS') {
-    if (!characterData[message.author.id]) {
-        return message.reply(getUserLanguage(message.author.id) === "ko" 
-            ? '❌ 먼저 `!시트입력`으로 캐릭터를 생성하세요.' 
-            : '❌ Please create a character first using `!create_sheet`.');
-    }
-    
-    if (args.length !== 1) {
-        return message.reply(getUserLanguage(message.author.id) === "ko" 
-            ? '❌ 사용법: `!혼의특기 [특기명]` (한 단어로 입력하세요)' 
-            : '❌ Usage: `!SS [skill_name]` (Enter a single word)');
-    }
+// 🔹 혼의 특기 설정
+client.on("messageCreate", async (message) => {
+    if (!message || message.author.bot) return; // message가 존재하는지 확인하고, 봇의 메시지는 무시
 
-    const 혼의특기 = args[0];
-    const 모든특기 = 특기목록.flat(); // 2D 배열을 1D 배열로 변환
-    if (모든특기.includes(혼의특기)) {
-        return message.reply(getUserLanguage(message.author.id) === "ko" 
-            ? `❌ **${혼의특기}**는 이미 존재하는 특기입니다! 혼의 특기는 기존 특기와 달라야 합니다.`
-            : `❌ **${혼의특기}** already exists! SS must be unique.`);
+    const args = message.content.split(" ");
+    const command = args.shift();
+
+    if (command === "!혼의특기" || command === "!SS") {
+        if (!characterData[message.author.id]) {
+            return message.reply(getUserLanguage(message.author.id) === "ko" 
+                ? '❌ 먼저 `!시트입력`으로 캐릭터를 생성하세요.' 
+                : '❌ Please create a character first using `!create_sheet`.');
+        }
+
+        if (args.length !== 1) {
+            return message.reply(getUserLanguage(message.author.id) === "ko" 
+                ? '❌ 사용법: `!혼의특기 [특기명]` (한 단어로 입력하세요)' 
+                : '❌ Usage: `!SS [skill_name]` (Enter a single word)');
+        }
+
+        const 혼의특기 = args[0];
+        const 모든특기 = 특기목록.flat();
+        if (모든특기.includes(혼의특기)) {
+            return message.reply(getUserLanguage(message.author.id) === "ko" 
+                ? `❌ **${혼의특기}**는 이미 존재하는 특기입니다! 혼의 특기는 기존 특기와 달라야 합니다.`
+                : `❌ **${혼의특기}** already exists! Stamp of Spirit must be unique.`);
+        }
+
+        characterData[message.author.id].혼의특기 = 혼의특기;
+        saveData();
+
+        message.reply(getUserLanguage(message.author.id) === "ko" 
+            ? `**혼의 특기**가 **"${혼의특기}"**(으)로 설정되었습니다. 💠 이 특기의 목표값은 항상 **6**입니다.`
+            : `**SS** has been set to **"${혼의특기}"**. 💠 This skill always has a target value of **6**.`);
     }
-
-    characterData[message.author.id].혼의특기 = 혼의특기;
-    saveData();
-
-    message.reply(getUserLanguage(message.author.id) === "ko" 
-        ? `**혼의 특기**가 **"${혼의특기}"**(으)로 설정되었습니다. 💠 이 특기의 목표값은 항상 **6**입니다.`
-        : `**SS** has been set to **"${혼의특기}"**. 💠 This skill always has a target value of **6**.`);
-}
+});
 
 // 🔹 혼의 특기 확인 (Check SS)
 if (command === '!혼특확인' || command === '!SS_check') {
@@ -555,12 +562,12 @@ if (command === '!혼특확인' || command === '!SS_check') {
     if (!char || !char.혼의특기) {
         return message.reply(getUserLanguage(message.author.id) === "ko" 
             ? '❌ 설정된 혼의 특기가 없습니다.' 
-            : '❌ No SS has been set.');
+            : '❌ No Stamp of Spirit has been set.');
     }
-    
+
     message.reply(getUserLanguage(message.author.id) === "ko" 
         ? `💠 **혼의 특기**: ${char.혼의특기}`
-        : `💠 **SS**: ${char.혼의특기}`);
+        : `💠 **Stamp of Spirit**: ${char.혼의특기}`);
 }
 
 // 🔹 판정 기능 (Judgment & SS)
@@ -571,17 +578,17 @@ if (command === '!판정' || command === '!DT_judgment') {
             : '❌ Please create a character first using `!create_sheet`.');
     }
 
-    let 원형사용 = false;
-    let 원형이름 = null;
-    let 판정특기 = null;
-    let 목표값 = 5;
+    let useArchetype = false;
+    let archetypeName = null;
+    let judgmentSkill = null;
+    let targetValue = 5; // 🔹 Default target value
 
     if (args.length === 1) {
-        판정특기 = args[0];
+        judgmentSkill = args[0];
     } else if (args.length === 2) {
-        원형이름 = args[0].replace(/"/g, '');
-        판정특기 = args[1];
-        원형사용 = true;
+        archetypeName = args[0].replace(/"/g, '');
+        judgmentSkill = args[1];
+        useArchetype = true;
     } else {
         return message.reply(getUserLanguage(message.author.id) === "ko" 
             ? '❌ 사용법: `!판정 [특기]` 또는 `!판정 "원형명" [특기]`'
@@ -589,45 +596,67 @@ if (command === '!판정' || command === '!DT_judgment') {
     }
 
     const char = characterData[message.author.id];
-    if (char.혼의특기 === 판정특기) {
-        목표값 = 6;
+
+    // 🎯 Stamp of Spirit (SS) Judgment (Fixed target value 6)
+    if (char.혼의특기 === judgmentSkill) {
+        targetValue = 6;
     } else {
-        let 특기좌표 = null;
+        // 🎯 General Skill Distance Judgment
+        let skillPosition = null;
         for (let i = 0; i < 특기목록.length; i++) {
             for (let j = 0; j < 특기목록[i].length; j++) {
-                if (특기목록[i][j] === 판정특기) {
-                    특기좌표 = { x: i, y: j };
+                if (특기목록[i][j] === judgmentSkill) {
+                    skillPosition = { x: i, y: j };
                     break;
                 }
             }
-            if (특기좌표) break;
+            if (skillPosition) break;
         }
 
-        if (!특기좌표) {
+        if (!skillPosition) {
             return message.reply(getUserLanguage(message.author.id) === "ko" 
-                ? `❌ 존재하지 않는 특기입니다: **${판정특기}**`
-                : `❌ Invalid skill: **${판정특기}**`);
+                ? `❌ 존재하지 않는 특기입니다: **${judgmentSkill}**`
+                : `❌ Invalid skill: **${judgmentSkill}**`);
+        }
+
+        if (!char.특기.includes(judgmentSkill)) {
+            let minDistance = 99;
+            for (const mySkill of char.특기) {
+                for (let i = 0; i < 특기목록.length; i++) {
+                    for (let j = 0; j < 특기목록[i].length; j++) {
+                        if (특기목록[i][j] === mySkill) {
+                            let distance = Math.abs(i - skillPosition.x) + Math.abs(j - skillPosition.y) * 2;
+                            if (char.영역 && (skillPosition.y === j || skillPosition.y === j - 1 || skillPosition.y === j + 1)) {
+                                distance = Math.abs(i - skillPosition.x) + Math.abs(j - skillPosition.y);
+                            }
+                            minDistance = Math.min(minDistance, distance);
+                        }
+                    }
+                }
+            }
+            targetValue = 5 + minDistance;
         }
     }
 
-    // 🎲 주사위 굴리기
+    // 🎲 Roll Dice (2D6)
     const dice1 = Math.floor(Math.random() * 6) + 1;
     const dice2 = Math.floor(Math.random() * 6) + 1;
     const diceRoll = dice1 + dice2;
-    const 성공여부 = diceRoll >= 목표값 ? '✅ **성공!**' : '❌ **실패!**';
+    const success = diceRoll >= targetValue ? '✅ **Success!**' : '❌ **Fail!**';
 
-    // 📜 결과 출력
-    if (원형사용) {
-        if (!char.원형 || char.원형.이름 !== 원형이름) {
+    // 📜 Display Judgment Result
+    if (useArchetype) {
+        if (!char.원형 || char.원형.이름 !== archetypeName) {
             return message.reply(getUserLanguage(message.author.id) === "ko" 
-                ? `❌ 당신의 원형 **"${원형이름}"**(은)는 존재하지 않습니다.`
-                : `❌ Your archetype **"${원형이름}"** does not exist.`);
+                ? `❌ 당신의 원형 **"${archetypeName}"**(은)는 존재하지 않습니다.`
+                : `❌ Your archetype **"${archetypeName}"** does not exist.`);
         }
-        message.reply(`2D6>=${목표값} **${판정특기} 판정** (원형: ${원형이름}) 🎲`);
+        message.reply(`2D6>=${targetValue} **${judgmentSkill} Judgment** (Archetype: ${archetypeName}) 🎲`);
     } else {
-        message.reply(`2D6>=${목표값} **${판정특기} 판정** 🎲`);
+        message.reply(`2D6>=${targetValue} **${judgmentSkill} Judgment** 🎲`);
     }
 }
+
 
 	
 	
