@@ -497,7 +497,7 @@ const 장서출력 = Object.keys(char.장서).length > 0
     const 위계출력 = char.위계 || '미설정';
 
     // 🔮 마력 출력
-    const 마력출력 = char.마력 ? `마력| **${char.마력}**` : '🔮 마력: (미결정)'; 
+    const 마력출력 = char.마력 ? `마력 | ${char.마력}` : '🔮 마력: (미결정)'; 
 
     // 💠 혼의 특기 출력
     const 혼의특기출력 = char.혼의특기 ? `💠 ${char.혼의특기}` : '없음';
