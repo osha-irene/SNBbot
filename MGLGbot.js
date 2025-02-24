@@ -16,6 +16,37 @@ const client = new Client({
 });
 
 
+// 🔹 슬래시 명령어 정의 (commands 선언 추가)
+const commands = [
+    new SlashCommandBuilder()
+        .setName('플롯')
+        .setDescription('플롯을 설정합니다.')
+        .addStringOption(option =>
+            option.setName('값')
+                .setDescription('1~6 사이의 숫자를 입력하세요. 예: 1 3 5')
+                .setRequired(true))
+].map(command => command.toJSON());
+
+const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_BOT_TOKEN);
+
+async function registerCommands() {
+    try {
+        if (!process.env.BOT_ID) {
+            throw new Error("❌ 환경 변수 BOT_ID가 설정되지 않았습니다.");
+        }
+
+        console.log("🛠️ 슬래시 명령어 등록 중...");
+        await rest.put(
+            Routes.applicationCommands(process.env.BOT_ID), // `.env`에 BOT_ID 추가 필요
+            { body: commands }
+        );
+        console.log("✅ 슬래시 명령어가 성공적으로 등록되었습니다!");
+    } catch (error) {
+        console.error("❌ 슬래시 명령어 등록 실패:", error);
+    }
+}
+
+
 // 데이터 파일 경로 설정
 const dataFilePath = path.join(__dirname, 'data.json');
 
@@ -1105,36 +1136,6 @@ for (const msg of helpMessages.filter(m => typeof m === 'string' && !Number.isNa
 }	
 	};
 
-
-// 🔹 슬래시 명령어 정의 (commands 선언 추가)
-const commands = [
-    new SlashCommandBuilder()
-        .setName('플롯')
-        .setDescription('플롯을 설정합니다.')
-        .addStringOption(option =>
-            option.setName('값')
-                .setDescription('1~6 사이의 숫자를 입력하세요. 예: 1 3 5')
-                .setRequired(true))
-].map(command => command.toJSON());
-
-const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_BOT_TOKEN);
-
-async function registerCommands() {
-    try {
-        if (!process.env.BOT_ID) {
-            throw new Error("❌ 환경 변수 BOT_ID가 설정되지 않았습니다.");
-        }
-
-        console.log("🛠️ 슬래시 명령어 등록 중...");
-        await rest.put(
-            Routes.applicationCommands(process.env.BOT_ID), // `.env`에 BOT_ID 추가 필요
-            { body: commands }
-        );
-        console.log("✅ 슬래시 명령어가 성공적으로 등록되었습니다!");
-    } catch (error) {
-        console.error("❌ 슬래시 명령어 등록 실패:", error);
-    }
-}
 
 // 12시간마다 BCdicebot#8116에게 명령어 전송
 const targetBotTag = "BCdicebot#8116";
