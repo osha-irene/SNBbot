@@ -5,6 +5,7 @@ require('dotenv').config(); // 환경 변수 로드
 const BOT_OWNER_ID = process.env.BOT_OWNER_ID;
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
+// 🔹 디스코드 봇 클라이언트 생성
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
