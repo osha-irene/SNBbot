@@ -79,34 +79,6 @@ client.on('guildCreate', guild => {
     }
 });
 
-// 🔹 Slash command for 플롯
-client.on('interactionCreate', async interaction => {
-    if (!interaction.isCommand()) return;
-
-    if (interaction.commandName === '플롯') {
-        // 입력값을 숫자로 변환하고 필터링
-        const numbers = interaction.options.getString('값')
-            .split(' ')
-            .map(n => parseInt(n))
-            .filter(n => n >= 1 && n <= 6);
-
-        if (numbers.length === 0) {
-            return interaction.reply({ content: '❌ 1~6 사이의 숫자를 입력하세요.', ephemeral: true });
-        }
-
-        // 플롯 저장
-        plotData[interaction.user.id] = numbers;
-        await interaction.reply({ content: '✅ 플롯이 저장되었습니다.', ephemeral: true });
-
-        // 공개 메시지로 "플롯 완료" 출력 (message.channel.send → interaction.channel.send 로 변경)
-        interaction.channel.send(
-            `<@${interaction.user.id}> 님이 플롯을 완료했습니다! 현재 플롯 참여자: ${Object.keys(plotData).length}명`
-        );
-    }
-});
-
-
-
 
 client.on('messageCreate', async message => {
     if (message.author.bot) return;
@@ -1132,7 +1104,8 @@ for (const msg of helpMessages.filter(m => typeof m === 'string' && !Number.isNa
 }	
 	};
 
-// Register Slash Commands
+
+// 🔹 슬래시 명령어 정의 (commands 선언 추가)
 const commands = [
     new SlashCommandBuilder()
         .setName('플롯')
@@ -1142,6 +1115,25 @@ const commands = [
                 .setDescription('1~6 사이의 숫자를 입력하세요. 예: 1 3 5')
                 .setRequired(true))
 ].map(command => command.toJSON());
+
+const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_BOT_TOKEN);
+
+async function registerCommands() {
+    try {
+        if (!process.env.BOT_ID) {
+            throw new Error("❌ 환경 변수 BOT_ID가 설정되지 않았습니다.");
+        }
+
+        console.log("🛠️ 슬래시 명령어 등록 중...");
+        await rest.put(
+            Routes.applicationCommands(process.env.BOT_ID), // `.env`에 BOT_ID 추가 필요
+            { body: commands }
+        );
+        console.log("✅ 슬래시 명령어가 성공적으로 등록되었습니다!");
+    } catch (error) {
+        console.error("❌ 슬래시 명령어 등록 실패:", error);
+    }
+}
 
 // 12시간마다 BCdicebot#8116에게 명령어 전송
 const targetBotTag = "BCdicebot#8116";
