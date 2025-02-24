@@ -111,7 +111,13 @@ client.on('guildCreate', guild => {
 
 
 client.on('messageCreate', async message => {
-    if (message.author.bot) return;
+    if (message.author.bot) return; // 봇 메시지는 무시
+
+    const args = message.content.trim().split(/\s+/); // 공백 기준으로 명령어와 인자 분리
+    const command = args.shift()?.toLowerCase(); // 첫 번째 단어를 명령어로 설정
+
+    if (!command) return; // 명령어가 없는 경우 종료
+
     try {
         if (message.author.bot) return;
         if (!message.guild) return;
@@ -307,7 +313,7 @@ if (command === '!시트입력') {
         characterData[message.author.id].마력 = 마력;
         saveData();
     
-        message.reply(`🔹**마력을 결정합니다.\n1D6+${근원력} 🎲`);
+        message.reply(`🔹**마력을 결정합니다.\n 1D6+${근원력} 🎲`);
     }
 
     // 🔹 영역 설정
