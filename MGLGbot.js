@@ -72,8 +72,6 @@ const saveData = () => {
     }
 };
 
-const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_BOT_TOKEN);
-
 async function registerCommands() {
     try {
         await rest.put(
