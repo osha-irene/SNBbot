@@ -288,6 +288,26 @@ if (command === '!시트입력') {
         }
 	}
 
+    // 🔹 마력 결정
+
+    if (command === '!마력결정') {
+        if (!characterData[message.author.id]) {
+            return message.reply('❌ 먼저 `!시트입력`으로 캐릭터를 생성하세요.');
+        }
+    
+        // 🎲 1D6 주사위 굴리기
+        const diceRoll = Math.floor(Math.random() * 6) + 1;
+        const 근원력 = characterData[message.author.id].능력치?.근원력 || 3;
+        const 마력 = 근원력 + diceRoll;
+    
+        // 마력 저장
+        characterData[message.author.id].마력 = 마력;
+        saveData();
+    
+        message.reply(`🔹**마력을 결정합니다.
+        1D6>+${근원력} 🎲`);
+    }
+
     // 🔹 영역 설정
     if (command === '!영역') {
         const 영역 = args[0];
@@ -476,7 +496,9 @@ const 장서출력 = Object.keys(char.장서).length > 0
   const 기관출력 = char.기관 || '미설정';
     const 계제출력 = char.계제 || 3; // 기본값 3
     const 위계출력 = char.위계 || '미설정';
- 
+
+    // 🔮 마력 출력
+    const 마력출력 = char.마력 ? `🔮 마력: **${char.마력}**` : '🔮 마력: (미결정)'; 
 
     // 💠 혼의 특기 출력
     const 혼의특기출력 = char.혼의특기 ? `💠 ${char.혼의특기}` : '없음';
@@ -504,7 +526,7 @@ message.reply(`
 > **제 ${계제출력}계제 ${기관출력}의 ${위계출력}**
 > 🔹 ${영역출력}의 마법사 **「${마법명출력}」**
 > 🔹 ${캐릭터이름}
-> 🔹 ${능력치출력}
+> 🔹 ${마력출력} ${능력치출력}
 
 🔹 **특기 목록**
 > ${특기목록출력}
