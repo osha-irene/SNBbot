@@ -3,6 +3,7 @@ const path = require('path'); // ✅ path 모듈 추가
 const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder } = require('discord.js');
 require('dotenv').config(); // 환경 변수 로드
 const BOT_OWNER_ID = process.env.BOT_OWNER_ID;
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 const client = new Client({
     intents: [
@@ -105,6 +106,8 @@ client.on('interactionCreate', async interaction => {
 });
 
 
+
+
 client.on('messageCreate', async message => {
     if (message.author.bot) return;
     try {
@@ -140,6 +143,17 @@ client.on('messageCreate', async message => {
             console.error(`🚫 서버 소유자에게 DM을 보낼 수 없습니다:`, dmError);
         }
     }
+
+    //Delay 추가
+
+    const args = message.content.match(/"([^"]+)"|\S+/g);
+    if (!args) return;
+
+    const command = args.shift();
+
+    if (command === '!테스트') {
+        await sleep(500); // 0.5초 딜레이
+        await message.reply('✅ 명령어가 정상적으로 실행되었습니다.');
 
 
 	const args = message.content.match(/"([^"]+)"|\S+/g); // 큰따옴표 포함 문자열 파싱
