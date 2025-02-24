@@ -1132,6 +1132,16 @@ for (const msg of helpMessages.filter(m => typeof m === 'string' && !Number.isNa
 }	
 	};
 
+// Register Slash Commands
+const commands = [
+    new SlashCommandBuilder()
+        .setName('플롯')
+        .setDescription('플롯을 설정합니다.')
+        .addStringOption(option =>
+            option.setName('값')
+                .setDescription('1~6 사이의 숫자를 입력하세요. 예: 1 3 5')
+                .setRequired(true))
+].map(command => command.toJSON());
 
 // 12시간마다 BCdicebot#8116에게 명령어 전송
 const targetBotTag = "BCdicebot#8116";
@@ -1163,4 +1173,5 @@ if (!token) {
 }
 
 client.login(token);
-console.log("✅ 디스코드 봇이 로그인되었습니다!")});
+console.log("✅ 디스코드 봇이 로그인되었습니다!");
+	    
