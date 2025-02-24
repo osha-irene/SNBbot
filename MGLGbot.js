@@ -44,12 +44,6 @@ async function registerCommands(clientId) {
     }
 }
 
-// 🔹 봇이 준비되면 명령어 등록
-client.once("ready", async () => {
-    console.log(`✅ Logged in as ${client.user.tag}!`);
-    await registerCommands(client.user.id);
-});
-
 // 🔹 플롯 명령어 실행
 client.on('interactionCreate', async interaction => {
     if (!interaction.isCommand()) return;
@@ -358,8 +352,7 @@ if (command === '!시트입력') {
         characterData[message.author.id].마력 = 마력;
         saveData();
     
-        message.reply(`🔹마력을 결정합니다.`);
-        message.reply(`1D6+${근원력} 🎲`);
+        message.reply(`🎲 **마력을 결정합니다.**\n1D6 + ${근원력} → **${dice} + ${근원력} = ${마력}**`);
     }
 
     // 🔹 영역 설정
