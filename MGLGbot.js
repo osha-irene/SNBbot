@@ -17,34 +17,44 @@ const client = new Client({
 
 
 // 🔹 슬래시 명령어 정의 (commands 선언 추가)
-const commands = [
-    new SlashCommandBuilder()
+module.exports = {
+    data: new SlashCommandBuilder()
         .setName('플롯')
         .setDescription('플롯을 설정합니다.')
         .addStringOption(option =>
             option.setName('값')
                 .setDescription('1~6 사이의 숫자를 입력하세요. 예: 1 3 5')
-                .setRequired(true))
-].map(command => command.toJSON());
+                .setRequired(true)
+        ),
+    async execute(interaction) {
+        try {
+            await interaction.deferReply({ ephemeral: true }); // 응답을 기다리게 설정 (비공개)
+            
+            const input = interaction.options.getString('값');
+            const numbers = input.split(' ')
+                .map(n => parseInt(n, 10))
+                .filter(n => n >= 1 && n <= 6);
 
-const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_BOT_TOKEN);
+            if (numbers.length === 0) {
+                return await interaction.editReply('❌ 1~6 사이의 숫자를 입력하세요.');
+            }
 
-async function registerCommands() {
-    try {
-        if (!process.env.BOT_ID) {
-            throw new Error("❌ 환경 변수 BOT_ID가 설정되지 않았습니다.");
+            // 플롯 저장 (임시 데이터 저장소)
+            plotData[interaction.user.id] = numbers;
+
+            await interaction.editReply(`✅ 플롯이 저장되었습니다: ${numbers.join(', ')}`);
+
+            // 공개 메시지로 알리기
+            const channel = interaction.channel;
+            if (channel) {
+                channel.send(`<@${interaction.user.id}> 님이 플롯을 완료했습니다! 현재 플롯 참여자: ${Object.keys(plotData).length}명`);
+            }
+        } catch (error) {
+            console.error("❌ 슬래시 명령어 실행 중 오류 발생:", error);
+            await interaction.editReply('⚠️ 플롯 설정 중 오류가 발생했습니다.');
         }
-
-        console.log("🛠️ 슬래시 명령어 등록 중...");
-        await rest.put(
-            Routes.applicationCommands(process.env.BOT_ID), // `.env`에 BOT_ID 추가 필요
-            { body: commands }
-        );
-        console.log("✅ 슬래시 명령어가 성공적으로 등록되었습니다!");
-    } catch (error) {
-        console.error("❌ 슬래시 명령어 등록 실패:", error);
-    }
-}
+    },
+};
 
 
 // 데이터 파일 경로 설정
