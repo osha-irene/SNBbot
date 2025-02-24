@@ -146,20 +146,7 @@ client.on('messageCreate', async message => {
         }
     }
 
-    //Delay 추가
 
-    const args = message.content.match(/"([^"]+)"|\S+/g);
-    if (!args) return;
-
-    const command = args.shift();
-
-    if (command === '!테스트') {
-        await sleep(500); // 0.5초 딜레이
-        await message.reply('✅ 명령어가 정상적으로 실행되었습니다.');
-
-
-	const args = message.content.match(/"([^"]+)"|\S+/g); // 큰따옴표 포함 문자열 파싱
-    const command = args.shift();
 	
 	// 특기 및 영역 목록
 const 영역목록 = ["별", "짐승", "힘", "노래", "꿈", "어둠"];
@@ -1163,7 +1150,5 @@ if (!token) {
     console.error("❌ DISCORD_BOT_TOKEN 환경 변수가 설정되지 않았습니다!");
     process.exit(1); // 환경 변수가 없으면 실행 중지
 }
-
-client.login(token);
-console.log("✅ 디스코드 봇이 로그인되었습니다!")});
+});
 	    
