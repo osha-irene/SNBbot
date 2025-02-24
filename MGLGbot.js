@@ -1173,5 +1173,5 @@ if (!token) {
 }
 
 client.login(token);
-console.log("✅ 디스코드 봇이 로그인되었습니다!");
+console.log("✅ 디스코드 봇이 로그인되었습니다!")});
 	    
