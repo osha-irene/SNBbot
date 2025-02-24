@@ -191,45 +191,6 @@ client.on('messageCreate', async message => {
         }
     }
 
-    // 특정 유저의 언어 데이터 가져오기
-function getLocalizedData(userId) {
-    return languageData[getUserLanguage(userId)] || languageData.ko; // 기본값: 한국어
-}
-
-// 영역 설정 명령어 수정
-if (command === '!영역' || command === '!set_domain') {
-    const data = getLocalizedData(message.author.id);
-    const 영역 = args[0];
-
-    if (!data.영역목록.includes(영역)) {
-        return message.reply(getUserLanguage(message.author.id) === "ko"
-            ? `❌ 존재하지 않는 영역입니다. (${data.영역목록.join(', ')} 중 선택)`
-            : `❌ Invalid domain. Choose from: (${data.영역목록.join(', ')})`);
-    }
-
-    if (!characterData[message.author.id]) characterData[message.author.id] = {};
-    characterData[message.author.id].영역 = 영역;
-    saveData();
-
-    message.reply(getUserLanguage(message.author.id) === "ko"
-        ? `✅ 영역이 **${영역}**(으)로 설정되었습니다.`
-        : `✅ Domain has been set to **${영역}**.`);
-}
-
-if (command === '!특기목록' || command === '!skill_list') {
-    const data = getLocalizedData(message.author.id);
-    let response = getUserLanguage(message.author.id) === "ko"
-        ? "📜 **특기 목록**\n"
-        : "📜 **Skill List**\n";
-
-    for (let i = 0; i < data.영역목록.length; i++) {
-        response += `🔹 **${data.영역목록[i]}**: ${data.특기목록[i].join(", ")}\n`;
-    }
-    
-    message.reply(response);
-}
-
-
 	
 	// 특기 및 영역 목록
     const languageData = {
@@ -510,17 +471,17 @@ const messages = {
         en: "❌ No skills have been set."
     }
 };
-
 // 🔹 영역 설정
 client.on("messageCreate", async message => {
     const args = message.content.split(" ");
     const command = args.shift();
+    const lang = getUserLanguage(message.author.id);
+    const data = getLocalizedData(message.author.id);
 
     if (command === "!영역" || command === "!setDomain") {
         const domain = args[0];
-        const lang = getUserLanguage(message.author.id);
 
-        if (!영역목록.includes(domain)) {
+        if (!data.영역목록.includes(domain)) {
             return message.reply(messages.invalidDomain[lang]);
         }
 
@@ -533,8 +494,6 @@ client.on("messageCreate", async message => {
 
     // 🔹 특기 설정
     if (command === "!특기설정" || command === "!setSkills") {
-        const lang = getUserLanguage(message.author.id);
-
         if (args.length !== 5) {
             return message.reply(lang === "ko" ? "❌ 5개의 특기를 입력해야 합니다." : "❌ You must enter exactly 5 skills.");
         }
@@ -548,7 +507,6 @@ client.on("messageCreate", async message => {
 
     // 🔹 특기 확인
     if (command === "!특기확인" || command === "!checkSkills") {
-        const lang = getUserLanguage(message.author.id);
         const char = characterData[message.author.id];
 
         if (!char || !char.특기) {
@@ -558,6 +516,7 @@ client.on("messageCreate", async message => {
         message.reply(messages.checkSkills[lang].replace("{value}", char.특기.join(", ")));
     }
 });
+
 
 // 🔹 혼의 특기 설정
 client.on("messageCreate", async (message) => {
