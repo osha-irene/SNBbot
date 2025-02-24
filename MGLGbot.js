@@ -14,7 +14,9 @@ const client = new Client({
         GatewayIntentBits.MessageContent
     ]
 });
-
+    setImmediate(async () => {
+        if (message.author.bot) return;
+        if (!message.guild) return;  // DM 방지
 
 const plotData = {}; // 플롯 데이터를 저장하는 객체
 const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_BOT_TOKEN);
@@ -154,6 +156,7 @@ client.on('messageCreate', async message => {
 
     const args = message.content.trim().split(/\s+/); // 공백 기준으로 명령어와 인자 분리
     const command = args.shift()?.toLowerCase(); // 첫 번째 단어를 명령어로 설정
+    setImmediate(async () => {
 
     if (!command) return; // 명령어가 없는 경우 종료
 
@@ -171,11 +174,6 @@ client.on('messageCreate', async message => {
         }
 
         let command = args.shift().toLowerCase(); // 첫 번째 단어를 명령어로 사용
-
-        // 🛠 예제: 특정 명령어 실행
-        if (command === "!테스트") {
-            message.channel.send("✅ 명령어가 정상적으로 실행되었습니다!");
-        }
 
     } catch (error) {
         console.error("🚨 [명령어 처리 중 오류 발생]:", error);
@@ -1196,4 +1194,4 @@ if (!token) {
     process.exit(1); // 환경 변수가 없으면 실행 중지
 }
 });
-	    
+});})
