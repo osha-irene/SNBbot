@@ -15,9 +15,6 @@ const client = new Client({
         GatewayIntentBits.MessageContent
     ]
 });
-    setImmediate(async () => {
-        if (message.author.bot) return;
-        if (!message.guild) return;  // DM 방지
 
 const plotData = {}; // 플롯 데이터를 저장하는 객체
 const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_BOT_TOKEN);
@@ -154,6 +151,10 @@ client.on('guildCreate', guild => {
 
 client.on('messageCreate', async message => {
     if (message.author.bot) return; // 봇 메시지는 무시
+
+    setImmediate(async () => {
+        if (message.author.bot) return;
+        if (!message.guild) return;  // DM 방지
 
     const args = message.content.trim().split(/\s+/); // 공백 기준으로 명령어와 인자 분리
     const command = args.shift()?.toLowerCase(); // 첫 번째 단어를 명령어로 설정
