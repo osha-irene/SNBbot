@@ -16,52 +16,22 @@ const client = new Client({
 });
 
 
-// 🔹 슬래시 명령어 정의 (commands 선언 추가)
-module.exports = {
-    data: new SlashCommandBuilder()
+const plotData = {}; // 플롯 데이터를 저장하는 객체
+const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_BOT_TOKEN);
+
+// 🔹 슬래시 명령어 정의
+const commands = [
+    new SlashCommandBuilder()
         .setName('플롯')
         .setDescription('플롯을 설정합니다.')
         .addStringOption(option =>
             option.setName('값')
                 .setDescription('1~6 사이의 숫자를 입력하세요. 예: 1 3 5')
                 .setRequired(true)
-        ),
-    async execute(interaction) {
-        try {
-            await interaction.deferReply({ ephemeral: true }); // 응답을 기다리게 설정 (비공개)
-            
-            const input = interaction.options.getString('값');
-            const numbers = input.split(' ')
-                .map(n => parseInt(n, 10))
-                .filter(n => n >= 1 && n <= 6);
+        )
+].map(command => command.toJSON());
 
-            if (numbers.length === 0) {
-                return await interaction.editReply('❌ 1~6 사이의 숫자를 입력하세요.');
-            }
-
-            // 플롯 저장 (임시 데이터 저장소)
-            plotData[interaction.user.id] = numbers;
-
-            await interaction.editReply(`✅ 플롯이 저장되었습니다: ${numbers.join(', ')}`);
-
-            // 공개 메시지로 알리기
-            const channel = interaction.channel;
-            if (channel) {
-                channel.send(`<@${interaction.user.id}> 님이 플롯을 완료했습니다! 현재 플롯 참여자: ${Object.keys(plotData).length}명`);
-            }
-        } catch (error) {
-            console.error("❌ 슬래시 명령어 실행 중 오류 발생:", error);
-            await interaction.editReply('⚠️ 플롯 설정 중 오류가 발생했습니다.');
-        }
-    },
-};
-
-const { REST, Routes } = require('discord.js');
-require('dotenv').config();
-
-const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_BOT_TOKEN);
-
-async function registerCommands(clientId, commands) {
+async function registerCommands(clientId) {
     try {
         console.log("⏳ 슬래시 명령어 등록 중...");
         await rest.put(
@@ -74,7 +44,52 @@ async function registerCommands(clientId, commands) {
     }
 }
 
-module.exports = { registerCommands };
+// 🔹 봇이 준비되면 명령어 등록
+client.once("ready", async () => {
+    console.log(`✅ Logged in as ${client.user.tag}!`);
+    await registerCommands(client.user.id);
+});
+
+// 🔹 플롯 명령어 실행
+client.on('interactionCreate', async interaction => {
+    if (!interaction.isCommand()) return;
+
+    if (interaction.commandName === '플롯') {
+        try {
+            await interaction.deferReply({ ephemeral: true });
+
+            const input = interaction.options.getString('값');
+            const numbers = input.split(' ')
+                .map(n => parseInt(n, 10))
+                .filter(n => n >= 1 && n <= 6);
+
+            if (numbers.length === 0) {
+                return await interaction.editReply('❌ 1~6 사이의 숫자를 입력하세요.');
+            }
+
+            plotData[interaction.user.id] = numbers;
+            await interaction.editReply(`✅ 플롯이 저장되었습니다: ${numbers.join(', ')}`);
+
+            if (interaction.channel) {
+                await interaction.channel.send(
+                    `<@${interaction.user.id}> 님이 플롯을 완료했습니다! 현재 플롯 참여자: ${Object.keys(plotData).length}명`
+                );
+            }
+        } catch (error) {
+            console.error("❌ 플롯 명령어 실행 중 오류 발생:", error);
+
+            // 오류 발생 시 관리자에게 DM 전송
+            try {
+                const owner = await client.users.fetch(BOT_OWNER_ID);
+                await owner.send(`⚠️ **오류 발생:**\n\`\`\`${error}\`\`\``);
+            } catch (dmError) {
+                console.error("❌ 관리자에게 오류 DM을 보내지 못했습니다:", dmError);
+            }
+
+            await interaction.editReply('⚠️ 플롯 설정 중 오류가 발생했습니다.');
+        }
+    }
+});
 
 
 // 데이터 파일 경로 설정
