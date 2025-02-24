@@ -1119,7 +1119,7 @@ for (const msg of helpMessages.filter(m => typeof m === 'string' && !Number.isNa
 }
 
 }	
-	};
+	;
 
 
 // 12시간마다 BCdicebot#8116에게 명령어 전송
